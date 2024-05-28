@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pacman Game</title>
+    <style>
+        .board {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .cell {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 20px;
+        }
+        #score {
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-board" class="board"></div>
+    <div id="score">Score: 0</div>
+    <script>
+        let score = 0;
+        let gameInterval;
+
+        function createGame(n) {
+            const gameBoard = Array(n).fill('.');
+            const positions = new Set();
+
+            while (positions.size < 3) {
+                positions.add(Math.floor(Math.random() * n));
+            }
+
+            const [pacman, ghost, fruit] = [...positions];
+            gameBoard[pacman] = 'C';
+            gameBoard[ghost] = '^';
+            gameBoard[fruit] = '@';
+
+            return gameBoard;
+        }
+
+        function renderGame(game) {
+            const gameBoardElement = document.getElementById('game-board');
+            gameBoardElement.innerHTML = '';
+            game.forEach(cell => {
+                const cellElement = document.createElement('div');
+                cellElement.className = 'cell';
+                cellElement.innerText = cell;
+                gameBoardElement.appendChild(cellElement);
+            });
+            document.getElementById('score').innerText = `Score: ${score}`;
+        }
+
+        function moveLeft(game) {
+            const index = game.indexOf('C');
+            if (index > 0) {
+                game[index] = '.';
+                if (game[index - 1] === '.' || game[index - 1] === '@') {
+                    score += 10;
+                }
+                game[index - 1] = 'C';
+                checkLevelCompletion(game);
+            }
+            return game;
+        }
+
+        function moveRight(game) {
+            const index = game.indexOf('C');
+            if (index < game.length - 1) {
+                game[index] = '.';
+                if (game[index + 1] === '.' || game[index + 1] === '@') {
+                    score += 10;
+                }
+                game[index + 1] = 'C';
+                checkLevelCompletion(game);
+            }
+            return game;
+        }
+
+        function checkLevelCompletion(game) {
+            if (game.every(cell => cell !== '.')) {
+                console.log("Level Completed!");
+                game = createGame(game.length);
+                score = 0;
+                renderGame(game);
+            }
+        }
+
+        function moveGhost(game) {
+            const index = game.indexOf('^');
+            const direction = Math.random() < 0.5 ? -1 : 1;
+
+            if (index + direction >= 0 && index + direction < game.length) {
+                game[index] = '.';
+                game[index + direction] = '^';
+            }
+
+            return game;
+        }
+
+        function startGame() {
+            let game = createGame(10);
+            renderGame(game);
+            console.log("Initial Game: ", game);
+
+            gameInterval = setInterval(() => {
+                game = moveGhost(game);
+                renderGame(game);
+                console.log("Game with ghost moved: ", game);
+            }, 2000);
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'ArrowLeft') {
+                    game = moveLeft(game);
+                    renderGame(game);
+                    console.log("Move Left: ", game);
+                    console.log("Score after move left: ", score);
+                } else if (event.key === 'ArrowRight') {
+                    game = moveRight(game);
+                    renderGame(game);
+                    console.log("Move Right: ", game);
+                    console.log("Score after move right: ", score);
+                }
+            });
+        }
+
+        startGame();
+    </script>
+</body>
+</html>
